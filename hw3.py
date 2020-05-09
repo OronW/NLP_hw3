@@ -2,11 +2,13 @@ import os
 import numpy
 import pandas
 from pandas import DataFrame
+from pandas.core.common import random_state
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer, TfidfTransformer
 from sklearn.metrics import confusion_matrix, f1_score
-from sklearn.model_selection import KFold
+from sklearn.model_selection import KFold, RepeatedKFold
 
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 
 directory = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Input'
@@ -15,37 +17,66 @@ directory = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Input'
 def main():
 
     # BOW for 2 users from Argentina
-
     totalCorpus = readAndLabel(directory)
-    # words = []
-    # print(totalCorpus[:1])
-    # for i in totalCorpus:
-    #     words.append(i['text'])
-    #
-    # print(words[:1])
-    # print(words[len(words)-1:len(words)])
-    # createFeatureVectors(words)
-    # print(type(totalCorpus))
+
+    tot = numpy.array(totalCorpus)
+
+    # x = numpy.array(i['text'] for i in totalCorpus)
+    # y = numpy.array(i['class'] for i in totalCorpus)
+
     x = [i['text'] for i in totalCorpus]
     y = [i['class'] for i in totalCorpus]
-
+    print('len = ' + str(len(x)) + ' | ' + str(len(y)))
     # print(x[:2])
     # print(y[:2])
 
-    xTrain, yTrain = x[:int(len(x)*0.9)], y[:int(len(x)*0.9)]
-    xTest, yTest = x[int(len(x)*0.9):], y[int(len(x)*0.9):]
 
-    cv = CountVectorizer()
-    features = cv.fit_transform(xTrain)
-    transformer = TfidfTransformer()
-    result_vectors = transformer.fit_transform(features)
+    # xTrain, yTrain = x[:int(len(x)*0.9)], y[:int(len(x)*0.9)]
+    # xTest, yTest = x[int(len(x)*0.9):], y[int(len(x)*0.9):]
 
-    model = MultinomialNB()
-    model.fit(features, yTrain)
+    kf = KFold(n_splits=10, shuffle=True)  # Define the split - into 2 folds
+    # kf.get_n_splits(tot)  # returns the number of splitting iterations in the cross-validator
 
-    featureTest = cv.transform(xTest)
+    # print(kf)
 
-    print(model.score(featureTest, yTest))
+    for train_index, test_index in kf.split(x):
+        print('TRAIN:', train_index, 'TEST:', test_index)
+
+        xTrain = []
+        xTest = []
+        yTest = []
+        yTrain = []
+        for index in train_index:
+            xTrain.append(x[index])
+            yTrain.append(y[index])
+
+        for index in test_index:
+            xTest.append(x[index])
+            yTest.append(y[index])
+
+
+        # y_train, y_test = y[train_index], y[test_index]
+
+    # rkf = RepeatedKFold(n_splits=10, n_repeats=10)
+    # # kf = KFold(n_splits=10)
+    # for train_index, test_index in rkf.split(x):
+    #     # print("%s %s" % (train_index, test_index))
+    #
+    #     # print("TRAIN:", train_index, "TEST:", test_index)
+    #     xTrain, xTest = x[train_index], x[test_index]
+    #     yTrain, yTest = y[train_index], y[test_index]
+    #
+
+        cv = CountVectorizer()
+        features = cv.fit_transform(xTrain)
+        transformer = TfidfTransformer()
+
+        model = MultinomialNB()
+        model.fit(features, yTrain)
+
+        featureTest = cv.transform(xTest)
+
+        print(model.score(featureTest, yTest))
 
     # return result_vectors
     # print(result_vectors)
