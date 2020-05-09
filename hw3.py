@@ -1,9 +1,35 @@
 import os
 
-directory = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Output'
+directory = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Input'
 
 
 def main():
+
+    # BOW for 2 users from Argentina
+    readAndLabel(directory)
+
+
+def readAndLabel(directory):
+
+    label = 0
+    totalCorpus = []
+
+    for currentFile in os.listdir(directory):
+        if currentFile.endswith(".txt"):
+            path = directory + '\\' + currentFile
+            print()
+            print('Reading the file: ')
+            print(path)
+
+            f = open(path, 'r', encoding='utf-8')
+            sentences = f.read().splitlines()
+
+            for sentence in sentences:
+                totalCorpus.append({'text': sentence, 'class': label})
+
+        label += 1
+
+    print(totalCorpus[47356:47360])
 
 
 
