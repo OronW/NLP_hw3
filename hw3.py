@@ -34,6 +34,10 @@ def main():
     X = totalDf['text']
     print('X shape:', X.shape)
 
+    cv = CountVectorizer()
+    words = cv.fit_transform(X)
+    print(len(cv.get_feature_names()))
+
     print()
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=1, train_size=0.9)
@@ -43,25 +47,62 @@ def main():
     print(y_test.shape)
 
 
-    vect = CountVectorizer()
+    # vect = CountVectorizer()
+    #
+    # X_train_dtm = vect.fit_transform(X_train)   # create document - term matrix for the words TODO: verify this part
+    #
+    # print(X_train_dtm.shape)
+    # print()
+    #
+    # X_test_dtm = vect.transform(X_test)
+    # print(X_test_dtm.shape)
+    #
+    # nb = MultinomialNB()
+    # nb.fit(X_train_dtm, y_train)
+    #
+    # y_pred_class = nb.predict(X_test_dtm)
+    # print('\n Accuracy score: ', metrics.accuracy_score(y_test, y_pred_class))
+    # print(y_test.value_counts())
+    # print(metrics.confusion_matrix(y_test, y_pred_class))
 
-    X_train_dtm = vect.fit_transform(X_train)   # create document - term matrix for the words TODO: verify this part
 
-    print(X_train_dtm.shape)
-    print()
+    sum = 0
 
-    X_test_dtm = vect.transform(X_test)
-    print(X_test_dtm.shape)
+    kf = KFold(n_splits=10, random_state=1, shuffle=True)
+    print(kf.get_n_splits(totalDf))
 
-    nb = MultinomialNB()
-    nb.fit(X_train_dtm, y_train)
+    for train_index, test_index in kf.split(X):
+        print("\nTRAIN:", train_index, "TEST:", test_index)
+        X_train, X_test = X[train_index], X[test_index]
+        y_train, y_test = y[train_index], y[test_index]
 
-    y_pred_class = nb.predict(X_test_dtm)
-    print('\n Accuracy score: ', metrics.accuracy_score(y_test, y_pred_class))
-    print(y_test.value_counts())
-    print(metrics.confusion_matrix(y_test, y_pred_class))
+        vect = CountVectorizer()
 
+        X_train_dtm = vect.fit_transform(X_train)  # create document - term matrix for the words TODO: verify this part
 
+        transformer = TfidfTransformer()
+        X_train_dtm = transformer.fit_transform(X_train_dtm)
+
+        X_test_dtm = vect.transform(X_test)
+        X_test_dtm = transformer.fit_transform(X_test_dtm)
+
+        # uncomment this part for NB classifier
+        # nb = MultinomialNB()
+        # nb.fit(X_train_dtm, y_train)
+        # y_pred_class = nb.predict(X_test_dtm)
+
+        # uncomment this part for LR classifier
+        lr = LogisticRegression(max_iter=500)
+        lr.fit(X_train_dtm, y_train)
+        y_pred_class = lr.predict(X_test_dtm)
+
+        print('\n Accuracy score: ', metrics.accuracy_score(y_test, y_pred_class))
+        sum += metrics.accuracy_score(y_test, y_pred_class)
+        print(y_test.value_counts())
+        print(metrics.confusion_matrix(y_test, y_pred_class))
+
+    print('**********************************')
+    print('Average accuracy after 10 folds: ', sum/10)
 
     # xTrain, yTrain = x[:int(len(x)*0.9)], y[:int(len(x)*0.9)]
     # xTest, yTest = x[int(len(x)*0.9):], y[int(len(x)*0.9):]
