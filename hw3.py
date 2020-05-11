@@ -1,6 +1,8 @@
 import os
+import random
+
 import numpy
-import pandas
+import pandas as pd
 from pandas import DataFrame
 from pandas.core.common import random_state
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer, TfidfTransformer
@@ -19,64 +21,30 @@ def main():
     # BOW for 2 users from Argentina
     totalCorpus = readAndLabel(directory)
 
-    tot = numpy.array(totalCorpus)
+    # X = numpy.array(totalCorpus)
 
-    # x = numpy.array(i['text'] for i in totalCorpus)
-    # y = numpy.array(i['class'] for i in totalCorpus)
+    X = pd.DataFrame.from_dict(totalCorpus)     # create a data frame for the labeled sentences
+    y = X[['class']]     # create a column for of the labels
 
-    x = [i['text'] for i in totalCorpus]
-    y = [i['class'] for i in totalCorpus]
-    print('len = ' + str(len(x)) + ' | ' + str(len(y)))
-    # print(x[:2])
-    # print(y[:2])
+    print(X)
+    print(y)
+    print('X shape:', X.shape)
+    print('y shape:', y.shape)
 
 
     # xTrain, yTrain = x[:int(len(x)*0.9)], y[:int(len(x)*0.9)]
     # xTest, yTest = x[int(len(x)*0.9):], y[int(len(x)*0.9):]
 
-    kf = KFold(n_splits=10, shuffle=True)  # Define the split - into 2 folds
+    # kf = KFold(n_splits=10, shuffle=True)  # Define the split - into 2 folds
     # kf.get_n_splits(tot)  # returns the number of splitting iterations in the cross-validator
 
     # print(kf)
-
-    for train_index, test_index in kf.split(x):
-        print('TRAIN:', train_index, 'TEST:', test_index)
-
-        xTrain = []
-        xTest = []
-        yTest = []
-        yTrain = []
-        for index in train_index:
-            xTrain.append(x[index])
-            yTrain.append(y[index])
-
-        for index in test_index:
-            xTest.append(x[index])
-            yTest.append(y[index])
+    # sum = 0
 
 
-        # y_train, y_test = y[train_index], y[test_index]
 
-    # rkf = RepeatedKFold(n_splits=10, n_repeats=10)
-    # # kf = KFold(n_splits=10)
-    # for train_index, test_index in rkf.split(x):
-    #     # print("%s %s" % (train_index, test_index))
-    #
-    #     # print("TRAIN:", train_index, "TEST:", test_index)
-    #     xTrain, xTest = x[train_index], x[test_index]
-    #     yTrain, yTest = y[train_index], y[test_index]
-    #
+    # print(sum/10)
 
-        cv = CountVectorizer()
-        features = cv.fit_transform(xTrain)
-        transformer = TfidfTransformer()
-
-        model = MultinomialNB()
-        model.fit(features, yTrain)
-
-        featureTest = cv.transform(xTest)
-
-        print(model.score(featureTest, yTest))
 
     # return result_vectors
     # print(result_vectors)
