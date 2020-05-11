@@ -14,14 +14,81 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 
-directory = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Input'
-
+userDir = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Input'
+countryDir = r'C:\Users\oron.werner\PycharmProjects\NLP\hw2Input'
+countryOut = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Input\byCountry'
+countryEqualizedInput = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Input\byCountry\equalized'
 
 def main():
 
     # BOW for 2 users from Argentina
-    totalCorpus = readAndLabel(directory)
+    # totalCorpus = readAndLabel(userDir)
+    # createFeatureVectors(totalCorpus)
 
+    # BOW for country files
+
+    # createShuffledFiles(countryDir)    # only needed if no shuffled files exists
+    # equalizeLength(countryOut)  # only needed if files do not have same amount of sentences
+    totalCorpus = readAndLabel(countryEqualizedInput)
+    createFeatureVectors(totalCorpus)
+
+
+def equalizeLength(directory):
+
+    lengthsOfFiles = []
+
+    for currentFile in os.listdir(directory):
+        if currentFile.endswith(".txt"):
+            path = directory + '\\' + currentFile
+            print()
+            print('Reading the file: ')
+            print(path)
+
+            f = open(path, 'r', encoding='utf-8')
+            sentences = f.read().splitlines()
+            lengthsOfFiles.append(len(sentences))
+
+    minLength = min(lengthsOfFiles)
+
+    for currentFile in os.listdir(directory):
+        if currentFile.endswith(".txt"):
+            path = directory + '\\' + currentFile
+            print()
+            print('Equalizing the file: ')
+            print(path)
+
+            f = open(path, 'r', encoding='utf-8')
+            sentences = f.read().splitlines()
+
+            newPath = directory + '\\' + 'equalized' + currentFile
+
+            f = open(newPath, 'w', encoding='utf-8')
+            for sentence in sentences[:minLength]:
+                f.write(sentence + '\n')
+
+
+
+def createShuffledFiles(directory):
+
+    for currentFile in os.listdir(directory):
+        if currentFile.endswith(".txt"):
+            path = directory + '\\' + currentFile
+            print()
+            print('Reading the file: ')
+            print(path)
+
+            f = open(path, 'r', encoding='utf-8')
+            sentences = f.read().splitlines()
+
+            random.shuffle(sentences)
+
+            f = open(countryOut + '\\' + 'Shuffled' + currentFile, 'w+', encoding='utf-8')
+            for sentence in sentences:
+                f.write(sentence + '\n')
+
+
+
+def createFeatureVectors(totalCorpus):
     # X = numpy.array(totalCorpus)
     totalDf = pd.DataFrame.from_dict(totalCorpus)     # create a data frame for the labeled sentences
     y = totalDf['class']     # create a column for of the labels
@@ -102,54 +169,8 @@ def main():
         print(metrics.confusion_matrix(y_test, y_pred_class))
 
     print('**********************************')
+
     print('Average accuracy after 10 folds: ', sum/10)
-
-    # xTrain, yTrain = x[:int(len(x)*0.9)], y[:int(len(x)*0.9)]
-    # xTest, yTest = x[int(len(x)*0.9):], y[int(len(x)*0.9):]
-
-    # kf = KFold(n_splits=10, shuffle=True)  # Define the split - into 2 folds
-    # kf.get_n_splits(tot)  # returns the number of splitting iterations in the cross-validator
-
-    # print(kf)
-    # sum = 0
-
-
-
-    # print(sum/10)
-
-
-    # return result_vectors
-    # print(result_vectors)
-
-
-    # pipeline = Pipeline([
-    #     ('count_vectorizer', CountVectorizer()),
-    #     ('classifier', MultinomialNB())
-    # ])
-    #
-    # k_fold = KFold(n_splits=2)
-    # scores = []
-    # confusion = numpy.array([[0, 0], [0, 0]])
-    # for train_indices, test_indices in k_fold.split(result_vectors):
-    #     train_text = result_vectors.iloc[train_indices]['text'].values
-    #     train_y = result_vectors.iloc[train_indices]['class'].values.astype(str)
-    #
-    #     test_text = result_vectors.iloc[test_indices]['text'].values
-    #     test_y = result_vectors.iloc[test_indices]['class'].values.astype(str)
-    #
-    #     pipeline.fit(train_text, train_y)
-    #     predictions = pipeline.predict(test_text)
-    #
-    #     confusion += confusion_matrix(test_y, predictions)
-    #     score = f1_score(test_y, predictions, pos_label=1)
-    #     scores.append(score)
-    #
-    # print('Total emails classified:', len(result_vectors))
-    # print('Score:', sum(scores) / len(scores))
-    # print('Confusion matrix:')
-    # print(confusion)
-
-
 
 
 
@@ -179,7 +200,7 @@ def readAndLabel(directory):
     return totalCorpus
 
 
-def createFeatureVectors(fileCorpus):
+def CFV(fileCorpus):
 
     vectorizer = CountVectorizer()
     vectorizer.fit(fileCorpus)
