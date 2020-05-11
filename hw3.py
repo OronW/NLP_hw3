@@ -5,9 +5,10 @@ import numpy
 import pandas as pd
 from pandas import DataFrame
 from pandas.core.common import random_state
+from sklearn import metrics
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer, TfidfTransformer
 from sklearn.metrics import confusion_matrix, f1_score
-from sklearn.model_selection import KFold, RepeatedKFold
+from sklearn.model_selection import KFold, RepeatedKFold, train_test_split
 
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
@@ -22,14 +23,44 @@ def main():
     totalCorpus = readAndLabel(directory)
 
     # X = numpy.array(totalCorpus)
+    totalDf = pd.DataFrame.from_dict(totalCorpus)     # create a data frame for the labeled sentences
+    y = totalDf['class']     # create a column for of the labels
 
-    X = pd.DataFrame.from_dict(totalCorpus)     # create a data frame for the labeled sentences
-    y = X[['class']]     # create a column for of the labels
-
-    print(X)
+    print(totalDf)
     print(y)
-    print('X shape:', X.shape)
+    print('totalDf shape:', totalDf.shape)
     print('y shape:', y.shape)
+
+    X = totalDf['text']
+    print('X shape:', X.shape)
+
+    print()
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=1, train_size=0.9)
+    print(X_train.shape)
+    print(X_test.shape)
+    print(y_train.shape)
+    print(y_test.shape)
+
+
+    vect = CountVectorizer()
+
+    X_train_dtm = vect.fit_transform(X_train)   # create document - term matrix for the words TODO: verify this part
+
+    print(X_train_dtm.shape)
+    print()
+
+    X_test_dtm = vect.transform(X_test)
+    print(X_test_dtm.shape)
+
+    nb = MultinomialNB()
+    nb.fit(X_train_dtm, y_train)
+
+    y_pred_class = nb.predict(X_test_dtm)
+    print('\n Accuracy score: ', metrics.accuracy_score(y_test, y_pred_class))
+    print(y_test.value_counts())
+    print(metrics.confusion_matrix(y_test, y_pred_class))
+
 
 
     # xTrain, yTrain = x[:int(len(x)*0.9)], y[:int(len(x)*0.9)]
