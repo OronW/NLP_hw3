@@ -29,8 +29,39 @@ def main():
 
     # createShuffledFiles(countryDir)    # only needed if no shuffled files exists
     # equalizeLength(countryOut)  # only needed if files do not have same amount of sentences
-    totalCorpus = readAndLabel(countryEqualizedInput)
-    createFeatureVectors(totalCorpus)
+
+    combineSentences(countryEqualizedInput)     # combines every 20 sentences into one
+    # totalCorpus = readAndLabel(countryEqualizedInput)
+    # createFeatureVectors(totalCorpus)
+
+
+def combineSentences(directory):
+
+    largeSentence = ''
+
+    for currentFile in os.listdir(directory):
+        if currentFile.endswith(".txt"):
+            path = directory + '\\' + currentFile
+            print()
+            print('Reading the file: ')
+            print(path)
+
+            f = open(path, 'r', encoding='utf-8')
+            sentences = f.read().splitlines()
+
+            newPath = directory + '\\' + 'combined' + currentFile
+
+            f = open(newPath, 'w', encoding='utf-8')
+            counter = 0
+
+            for sentence in sentences:
+                counter += 1
+                largeSentence += sentence + ' '
+
+                if counter == 20:
+                    f.write(largeSentence.rstrip() + '\n')
+                    largeSentence = ''
+                    counter = 0
 
 
 def equalizeLength(directory):
@@ -48,7 +79,11 @@ def equalizeLength(directory):
             sentences = f.read().splitlines()
             lengthsOfFiles.append(len(sentences))
 
-    minLength = min(lengthsOfFiles)
+    minLength = min(lengthsOfFiles) + 1
+    neededLength = minLength - (minLength % 20) - 1
+
+    print(minLength)
+    print(neededLength)
 
     for currentFile in os.listdir(directory):
         if currentFile.endswith(".txt"):
@@ -63,7 +98,7 @@ def equalizeLength(directory):
             newPath = directory + '\\' + 'equalized' + currentFile
 
             f = open(newPath, 'w', encoding='utf-8')
-            for sentence in sentences[:minLength]:
+            for sentence in sentences[:neededLength]:
                 f.write(sentence + '\n')
 
 
