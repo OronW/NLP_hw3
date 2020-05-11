@@ -30,9 +30,9 @@ def main():
     # createShuffledFiles(countryDir)    # only needed if no shuffled files exists
     # equalizeLength(countryOut)  # only needed if files do not have same amount of sentences
 
-    combineSentences(countryEqualizedInput)     # combines every 20 sentences into one
-    # totalCorpus = readAndLabel(countryEqualizedInput)
-    # createFeatureVectors(totalCorpus)
+    # combineSentences(countryEqualizedInput)     # combines every 20 sentences into one
+    totalCorpus = readAndLabel(countryEqualizedInput)
+    createFeatureVectors(totalCorpus)
 
 
 def combineSentences(directory):
@@ -59,9 +59,13 @@ def combineSentences(directory):
                 largeSentence += sentence + ' '
 
                 if counter == 20:
-                    f.write(largeSentence.rstrip() + '\n')
-                    largeSentence = ''
-                    counter = 0
+                    if sentence == sentences[len(sentences)-1]:
+                        print('HERE')
+                        f.write(largeSentence)
+                    else:
+                        f.write(largeSentence + '\n')
+                        largeSentence = ''
+                        counter = 0
 
 
 def equalizeLength(directory):
@@ -80,7 +84,7 @@ def equalizeLength(directory):
             lengthsOfFiles.append(len(sentences))
 
     minLength = min(lengthsOfFiles) + 1
-    neededLength = minLength - (minLength % 20) - 1
+    neededLength = minLength - (minLength % 20)
 
     print(minLength)
     print(neededLength)
