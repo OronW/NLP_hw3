@@ -1,38 +1,60 @@
 import os
 import random
-
-import numpy
 import pandas as pd
-from pandas import DataFrame
-from pandas.core.common import random_state
-from sklearn import metrics
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer, TfidfTransformer
-from sklearn.metrics import confusion_matrix, f1_score
-from sklearn.model_selection import KFold, RepeatedKFold, train_test_split
+import numpy as np
 
+from sklearn import metrics
+from sklearn.feature_extraction import DictVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer, TfidfTransformer
+
+from sklearn.model_selection import KFold, RepeatedKFold, train_test_split
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
-from sklearn.pipeline import Pipeline
+from sklearn.pipeline import Pipeline, FeatureUnion
 
-userDir = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Input'
+userDir = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Input\byUser'
 countryDir = r'C:\Users\oron.werner\PycharmProjects\NLP\hw2Input'
 countryOut = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Input\byCountry'
 countryEqualizedInput = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Input\byCountry\equalized'
 
 def main():
 
-    # BOW for 2 users from Argentina
-    # totalCorpus = readAndLabel(userDir)
-    # createFeatureVectors(totalCorpus)
 
+    print('Phase1 (Bag of Words):')
+    print('Author Identification:')
+    # \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/
+    # BOW for 2 users from Argentina
+
+    # totalCorpus = readAndLabel(userDir)
+    # createFeatureVectors(totalCorpus, 'NB')
+    # createFeatureVectors(totalCorpus, 'LR')
+    # /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\
+
+
+    # \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/
     # BOW for country files
 
     # createShuffledFiles(countryDir)    # only needed if no shuffled files exists
     # equalizeLength(countryOut)  # only needed if files do not have same amount of sentences
-
     # combineSentences(countryEqualizedInput)     # combines every 20 sentences into one
-    totalCorpus = readAndLabel(countryEqualizedInput)
-    createFeatureVectors(totalCorpus)
+
+    print('Native Language Identification:')
+    # totalCorpus = readAndLabel(countryEqualizedInput)
+    # createFeatureVectors(totalCorpus, 'NB')
+    # createFeatureVectors(totalCorpus, 'LR')
+    # /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\
+
+    totalCorpus = readAndLabel(userDir)
+    createFeatureVectors(totalCorpus, 'NB', vectorType='manual')
+
+    # manualVector = manualFeatureVector()
+
+
+def manualFeatureVector():
+    manualVector = []
+
+
+
 
 
 def combineSentences(directory):
@@ -42,9 +64,9 @@ def combineSentences(directory):
     for currentFile in os.listdir(directory):
         if currentFile.endswith(".txt"):
             path = directory + '\\' + currentFile
-            print()
-            print('Reading the file: ')
-            print(path)
+            # print()
+            # print('Reading the file: ')
+            # print(path)
 
             f = open(path, 'r', encoding='utf-8')
             sentences = f.read().splitlines()
@@ -75,9 +97,9 @@ def equalizeLength(directory):
     for currentFile in os.listdir(directory):
         if currentFile.endswith(".txt"):
             path = directory + '\\' + currentFile
-            print()
-            print('Reading the file: ')
-            print(path)
+            # print()
+            # print('Reading the file: ')
+            # print(path)
 
             f = open(path, 'r', encoding='utf-8')
             sentences = f.read().splitlines()
@@ -86,15 +108,15 @@ def equalizeLength(directory):
     minLength = min(lengthsOfFiles) + 1
     neededLength = minLength - (minLength % 20)
 
-    print(minLength)
-    print(neededLength)
+    # print(minLength)
+    # print(neededLength)
 
     for currentFile in os.listdir(directory):
         if currentFile.endswith(".txt"):
             path = directory + '\\' + currentFile
-            print()
-            print('Equalizing the file: ')
-            print(path)
+            # print()
+            # print('Equalizing the file: ')
+            # print(path)
 
             f = open(path, 'r', encoding='utf-8')
             sentences = f.read().splitlines()
@@ -112,9 +134,9 @@ def createShuffledFiles(directory):
     for currentFile in os.listdir(directory):
         if currentFile.endswith(".txt"):
             path = directory + '\\' + currentFile
-            print()
-            print('Reading the file: ')
-            print(path)
+            # print()
+            # print('Reading the file: ')
+            # print(path)
 
             f = open(path, 'r', encoding='utf-8')
             sentences = f.read().splitlines()
@@ -127,89 +149,104 @@ def createShuffledFiles(directory):
 
 
 
-def createFeatureVectors(totalCorpus):
+def createFeatureVectors(totalCorpus, classifier, vectorType='normal'):
     # X = numpy.array(totalCorpus)
     totalDf = pd.DataFrame.from_dict(totalCorpus)     # create a data frame for the labeled sentences
     y = totalDf['class']     # create a column for of the labels
 
-    print(totalDf)
-    print(y)
-    print('totalDf shape:', totalDf.shape)
-    print('y shape:', y.shape)
+    # print(totalDf)
+    # print(y)
+    # print('totalDf shape:', totalDf.shape)
+    # print('y shape:', y.shape)
 
     X = totalDf['text']
-    print('X shape:', X.shape)
+    # print('X shape:', X.shape)
 
     cv = CountVectorizer()
     words = cv.fit_transform(X)
-    print(len(cv.get_feature_names()))
-
-    print()
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=1, train_size=0.9)
-    print(X_train.shape)
-    print(X_test.shape)
-    print(y_train.shape)
-    print(y_test.shape)
-
-
-    # vect = CountVectorizer()
-    #
-    # X_train_dtm = vect.fit_transform(X_train)   # create document - term matrix for the words TODO: verify this part
-    #
-    # print(X_train_dtm.shape)
-    # print()
-    #
-    # X_test_dtm = vect.transform(X_test)
-    # print(X_test_dtm.shape)
-    #
-    # nb = MultinomialNB()
-    # nb.fit(X_train_dtm, y_train)
-    #
-    # y_pred_class = nb.predict(X_test_dtm)
-    # print('\n Accuracy score: ', metrics.accuracy_score(y_test, y_pred_class))
-    # print(y_test.value_counts())
-    # print(metrics.confusion_matrix(y_test, y_pred_class))
-
+    # print(len(cv.get_feature_names()))
 
     sum = 0
 
     kf = KFold(n_splits=10, random_state=1, shuffle=True)
-    print(kf.get_n_splits(totalDf))
+    # print('Number of splits for run:', kf.get_n_splits(totalDf))
 
     for train_index, test_index in kf.split(X):
-        print("\nTRAIN:", train_index, "TEST:", test_index)
+        # print("\nTRAIN:", train_index, "TEST:", test_index)
         X_train, X_test = X[train_index], X[test_index]
         y_train, y_test = y[train_index], y[test_index]
 
-        vect = CountVectorizer()
+        if vectorType == 'normal':
 
-        X_train_dtm = vect.fit_transform(X_train)  # create document - term matrix for the words TODO: verify this part
+            vect = CountVectorizer()
+            X_train_dtm = vect.fit_transform(X_train)  # create document - term matrix for the words TODO: verify this part
+            print(X_train_dtm.shape)
 
-        transformer = TfidfTransformer()
-        X_train_dtm = transformer.fit_transform(X_train_dtm)
+            transformer = TfidfTransformer()
+            X_train_dtm = transformer.fit_transform(X_train_dtm)
 
-        X_test_dtm = vect.transform(X_test)
-        X_test_dtm = transformer.fit_transform(X_test_dtm)
+            X_test_dtm = vect.transform(X_test)
+            X_test_dtm = transformer.fit_transform(X_test_dtm)
 
-        # uncomment this part for NB classifier
-        # nb = MultinomialNB()
-        # nb.fit(X_train_dtm, y_train)
-        # y_pred_class = nb.predict(X_test_dtm)
+        elif vectorType == 'manual':
+            myVectorXtrain = []
+            myVectorXtest = []
 
-        # uncomment this part for LR classifier
-        lr = LogisticRegression(max_iter=500)
-        lr.fit(X_train_dtm, y_train)
-        y_pred_class = lr.predict(X_test_dtm)
+            for sentence in X_train:
+                st = sentence.split()
+                # print('sentenceLen ' + str(len(sentence)) + ' wordLen ' + str(len(st)))
+                myVectorXtrain.append([len(sentence), len(st)])
 
-        print('\n Accuracy score: ', metrics.accuracy_score(y_test, y_pred_class))
-        sum += metrics.accuracy_score(y_test, y_pred_class)
-        print(y_test.value_counts())
-        print(metrics.confusion_matrix(y_test, y_pred_class))
+            for sentence in X_test:
+                st = sentence.split()
+                # print('sentenceLen ' + str(len(sentence)) + ' wordLen ' + str(len(st)))
+                myVectorXtest.append([len(sentence), len(st)])
 
-    print('**********************************')
+            print(np.array(myVectorXtrain))
 
-    print('Average accuracy after 10 folds: ', sum/10)
+            X_train_dtm = np.array(myVectorXtrain)  # create document - term matrix for the words TODO: verify this part
+            X_test_dtm = np.array(myVectorXtest)
+
+            print('X train dtm ', X_train_dtm.shape)
+            print('X test dtm ', X_test_dtm.shape)
+
+
+
+
+        # -- uncomment this part for NB classifier --
+        if classifier == 'NB':
+            nb = MultinomialNB()
+            nb.fit(X_train_dtm, y_train)
+            y_pred_class = nb.predict(X_test_dtm)
+            sum += metrics.accuracy_score(y_test, y_pred_class)
+
+
+        # -- uncomment this part for LR classifier --
+        elif classifier == 'LR':
+            lr = LogisticRegression(max_iter=500)
+            lr.fit(X_train_dtm, y_train)
+            y_pred_class = lr.predict(X_test_dtm)
+            sum += metrics.accuracy_score(y_test, y_pred_class)
+
+        else:
+            print('NO CLASSIFIER SELECTED FOR \'createFeatureVectors\' FUNCTION. ENDING RUN! ')
+            exit()
+
+
+        print('\nAccuracy score: ', metrics.accuracy_score(y_test, y_pred_class))
+        # print('Test sentences by classes:')
+        # print(y_test.value_counts())
+        # print('Confusion matrix:\n', metrics.confusion_matrix(y_test, y_pred_class))
+
+    # print('\n**********************************')
+
+    acc = sum/10
+    total = int(sum*1000)/100
+
+    if classifier == 'NB':
+        print('Naïve Bayes: ', total)
+    if classifier == 'LR':
+        print('Logistic Regression: ', total)
 
 
 
@@ -223,9 +260,9 @@ def readAndLabel(directory):
     for currentFile in os.listdir(directory)[:]:
         if currentFile.endswith(".txt"):
             path = directory + '\\' + currentFile
-            print()
-            print('Reading the file: ')
-            print(path)
+            # print()
+            # print('Reading the file: ')
+            # print(path)
 
             f = open(path, 'r', encoding='utf-8')
             sentences = f.read().splitlines()
