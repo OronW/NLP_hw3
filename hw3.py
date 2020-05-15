@@ -20,18 +20,16 @@ countryEqualizedInput = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Input\byCo
 def main():
 
 
+    # \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/
     print('Phase1 (Bag of Words):')
     print('Author Identification:')
-    # \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/
     # BOW for 2 users from Argentina
 
     # totalCorpus = readAndLabel(userDir)
     # createFeatureVectors(totalCorpus, 'NB')
     # createFeatureVectors(totalCorpus, 'LR')
-    # /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\
 
 
-    # \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/
     # BOW for country files
 
     # createShuffledFiles(countryDir)    # only needed if no shuffled files exists
@@ -42,12 +40,24 @@ def main():
     # totalCorpus = readAndLabel(countryEqualizedInput)
     # createFeatureVectors(totalCorpus, 'NB')
     # createFeatureVectors(totalCorpus, 'LR')
+    print('-------------------------------------------------------------------------------------------------------------------')
     # /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\
 
-    totalCorpus = readAndLabel(userDir)
-    createFeatureVectors(totalCorpus, 'NB', vectorType='manual')
 
-    # manualVector = manualFeatureVector()
+    # \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/
+    print('Phase2 (My features):')
+    print('Author Identification:')
+
+    # totalCorpus = readAndLabel(userDir)
+    # createFeatureVectors(totalCorpus, 'NB', vectorType='manual')
+    # createFeatureVectors(totalCorpus, 'LR', vectorType='manual')
+
+    print('Native Language Identification:')
+    totalCorpus = readAndLabel(countryEqualizedInput)
+    # createFeatureVectors(totalCorpus, 'NB', vectorType='manual')
+    createFeatureVectors(totalCorpus, 'LR', vectorType='manual')
+    print('-------------------------------------------------------------------------------------------------------------------')
+    # /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\
 
 
 def manualFeatureVector():
@@ -180,13 +190,14 @@ def createFeatureVectors(totalCorpus, classifier, vectorType='normal'):
 
             vect = CountVectorizer()
             X_train_dtm = vect.fit_transform(X_train)  # create document - term matrix for the words TODO: verify this part
-            print(X_train_dtm.shape)
+            # print(X_train_dtm.shape)
 
             transformer = TfidfTransformer()
             X_train_dtm = transformer.fit_transform(X_train_dtm)
 
             X_test_dtm = vect.transform(X_test)
             X_test_dtm = transformer.fit_transform(X_test_dtm)
+
 
         elif vectorType == 'manual':
             myVectorXtrain = []
@@ -195,20 +206,21 @@ def createFeatureVectors(totalCorpus, classifier, vectorType='normal'):
             for sentence in X_train:
                 st = sentence.split()
                 # print('sentenceLen ' + str(len(sentence)) + ' wordLen ' + str(len(st)))
-                myVectorXtrain.append([len(sentence), len(st)])
+                myVectorXtrain.append([len(sentence), len(st), sentence.count('!'), sentence.count('?'), sentence.count('.'), sentence.count('\''), sentence.count('I am'), sentence.count('you \' re'), sentence.count('. . .'), sentence.count('I \' m')])
+
 
             for sentence in X_test:
                 st = sentence.split()
                 # print('sentenceLen ' + str(len(sentence)) + ' wordLen ' + str(len(st)))
-                myVectorXtest.append([len(sentence), len(st)])
+                myVectorXtest.append([len(sentence), len(st), sentence.count('!'), sentence.count('?'), sentence.count('.'), sentence.count('\''), sentence.count('I am'), sentence.count('you \' re'), sentence.count('. . .'), sentence.count('I \' m')])
 
-            print(np.array(myVectorXtrain))
+            # print(np.array(myVectorXtrain))
 
             X_train_dtm = np.array(myVectorXtrain)  # create document - term matrix for the words TODO: verify this part
             X_test_dtm = np.array(myVectorXtest)
 
-            print('X train dtm ', X_train_dtm.shape)
-            print('X test dtm ', X_test_dtm.shape)
+            # print('X train dtm ', X_train_dtm.shape)
+            # print('X test dtm ', X_test_dtm.shape)
 
 
 
@@ -223,7 +235,7 @@ def createFeatureVectors(totalCorpus, classifier, vectorType='normal'):
 
         # -- uncomment this part for LR classifier --
         elif classifier == 'LR':
-            lr = LogisticRegression(max_iter=500)
+            lr = LogisticRegression(max_iter=1000)
             lr.fit(X_train_dtm, y_train)
             y_pred_class = lr.predict(X_test_dtm)
             sum += metrics.accuracy_score(y_test, y_pred_class)
@@ -233,7 +245,7 @@ def createFeatureVectors(totalCorpus, classifier, vectorType='normal'):
             exit()
 
 
-        print('\nAccuracy score: ', metrics.accuracy_score(y_test, y_pred_class))
+        # print('\nAccuracy score: ', metrics.accuracy_score(y_test, y_pred_class))
         # print('Test sentences by classes:')
         # print(y_test.value_counts())
         # print('Confusion matrix:\n', metrics.confusion_matrix(y_test, y_pred_class))
