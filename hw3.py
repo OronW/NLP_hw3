@@ -3,6 +3,9 @@ import random
 import pandas as pd
 import numpy as np
 
+from sklearn.utils._testing import ignore_warnings
+from sklearn.exceptions import ConvergenceWarning
+
 from sklearn import metrics
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer, TfidfTransformer
@@ -23,23 +26,23 @@ def main():
     # \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/
     print('Phase1 (Bag of Words):')
     print('Author Identification:')
-    # BOW for 2 users from Argentina
 
-    # totalCorpus = readAndLabel(userDir)
-    # createFeatureVectors(totalCorpus, 'NB')
-    # createFeatureVectors(totalCorpus, 'LR')
+    # BOW for 2 users files
+    totalCorpus = readAndLabel(userDir)
+    createFeatureVectors(totalCorpus, 'NB')
+    createFeatureVectors(totalCorpus, 'LR')
 
 
-    # BOW for country files
-
+    # prep for country files
     # createShuffledFiles(countryDir)    # only needed if no shuffled files exists
     # equalizeLength(countryOut)  # only needed if files do not have same amount of sentences
     # combineSentences(countryEqualizedInput)     # combines every 20 sentences into one
 
+    # BOW for country files
     print('Native Language Identification:')
-    # totalCorpus = readAndLabel(countryEqualizedInput)
-    # createFeatureVectors(totalCorpus, 'NB')
-    # createFeatureVectors(totalCorpus, 'LR')
+    totalCorpus = readAndLabel(countryEqualizedInput)
+    createFeatureVectors(totalCorpus, 'NB')
+    createFeatureVectors(totalCorpus, 'LR')
     print('-------------------------------------------------------------------------------------------------------------------')
     # /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\
 
@@ -48,13 +51,15 @@ def main():
     print('Phase2 (My features):')
     print('Author Identification:')
 
-    # totalCorpus = readAndLabel(userDir)
-    # createFeatureVectors(totalCorpus, 'NB', vectorType='manual')
-    # createFeatureVectors(totalCorpus, 'LR', vectorType='manual')
+    # Manual vector for 2 users files
+    totalCorpus = readAndLabel(userDir)
+    createFeatureVectors(totalCorpus, 'NB', vectorType='manual')
+    createFeatureVectors(totalCorpus, 'LR', vectorType='manual')
 
+    # Manual vector for country files
     print('Native Language Identification:')
     totalCorpus = readAndLabel(countryEqualizedInput)
-    # createFeatureVectors(totalCorpus, 'NB', vectorType='manual')
+    createFeatureVectors(totalCorpus, 'NB', vectorType='manual')
     createFeatureVectors(totalCorpus, 'LR', vectorType='manual')
     print('-------------------------------------------------------------------------------------------------------------------')
     # /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\
@@ -158,7 +163,7 @@ def createShuffledFiles(directory):
                 f.write(sentence + '\n')
 
 
-
+@ignore_warnings(category=ConvergenceWarning)
 def createFeatureVectors(totalCorpus, classifier, vectorType='normal'):
     # X = numpy.array(totalCorpus)
     totalDf = pd.DataFrame.from_dict(totalCorpus)     # create a data frame for the labeled sentences
@@ -235,7 +240,7 @@ def createFeatureVectors(totalCorpus, classifier, vectorType='normal'):
 
         # -- uncomment this part for LR classifier --
         elif classifier == 'LR':
-            lr = LogisticRegression(max_iter=1000)
+            lr = LogisticRegression(max_iter=500)
             lr.fit(X_train_dtm, y_train)
             y_pred_class = lr.predict(X_test_dtm)
             sum += metrics.accuracy_score(y_test, y_pred_class)
