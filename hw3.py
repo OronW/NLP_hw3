@@ -22,6 +22,12 @@ userDir = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Input\byUser'
 countryDir = r'C:\Users\oron.werner\PycharmProjects\NLP\hw2Input'
 countryOut = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Input\byCountry'
 countryEqualizedInput = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Input\byCountry\equalized'
+summaryOutputPath = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Output\summary\summary.txt'
+bestWords1 = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Output\summary\words1.txt'
+bestWords2 = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Output\summary\words2.txt'
+
+summaryToFile = []
+bestWords = []
 
 def main():
 
@@ -29,7 +35,8 @@ def main():
     # \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/
     print('Phase1 (Bag of Words):')
     print('Author Identification:')
-
+    summaryToFile.append('Phase1 (Bag of Words):')
+    summaryToFile.append('Author Identification:')
     # BOW for 2 users files
     # totalCorpus = readAndLabel(userDir)
     # createFeatureVectors(totalCorpus, 'NB')
@@ -43,16 +50,23 @@ def main():
 
     # BOW for country files
     print('Native Language Identification:')
+    summaryToFile.append('Native Language Identification:')
+
     # totalCorpus = readAndLabel(countryEqualizedInput)
     # createFeatureVectors(totalCorpus, 'NB')
     # createFeatureVectors(totalCorpus, 'LR')
     print('-------------------------------------------------------------------------------------------------------------------')
+    summaryToFile.append('-------------------------------------------------------------------------------------------------------------------')
+
     # /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\
 
 
     # \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/
     print('Phase2 (My features):')
     print('Author Identification:')
+    summaryToFile.append('Phase2 (My features):')
+    summaryToFile.append('Author Identification:')
+
 
     # Manual vector for 2 users files
     # totalCorpus = readAndLabel(userDir)
@@ -61,32 +75,64 @@ def main():
 
     # Manual vector for country files
     print('Native Language Identification:')
+    summaryToFile.append('Native Language Identification:')
+
     # totalCorpus = readAndLabel(countryEqualizedInput)
     # createFeatureVectors(totalCorpus, 'NB', vectorType='manual')
     # createFeatureVectors(totalCorpus, 'LR', vectorType='manual')
     print('-------------------------------------------------------------------------------------------------------------------')
+    summaryToFile.append('-------------------------------------------------------------------------------------------------------------------')
+
     # /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\
 
 
     # \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/
     print('Phase3 (Best features):')
     print('Author Identification:')
+    summaryToFile.append('Phase3 (Best features):')
+    summaryToFile.append('Author Identification:')
 
     totalCorpus = readAndLabel(userDir)
     featureList = getKbest(totalCorpus)
-    featureMatrix = np.array(featureList)
+    # featureMatrix = np.array(featureList)
     # print(featureMatrix.reshape((20, 5)))
-    createFeatureVectors(totalCorpus, 'NB', featureList, vectorType='kbest')
-    createFeatureVectors(totalCorpus, 'LR', featureList, vectorType='kbest')
+
+    createWordsFile(featureList, bestWords1)
+
+
+    # createFeatureVectors(totalCorpus, 'NB', featureList, vectorType='kbest')
+    # createFeatureVectors(totalCorpus, 'LR', featureList, vectorType='kbest')
 
     print('Native Language Identification:')
+    summaryToFile.append('Native Language Identification:')
+
     totalCorpus = readAndLabel(countryEqualizedInput)
     featureList = getKbest(totalCorpus)
-    featureMatrix = np.array(featureList)
+    # featureMatrix = np.array(featureList)
     # print(featureMatrix.reshape((20, 5)))
-    createFeatureVectors(totalCorpus, 'NB', featureList, vectorType='kbest')
-    createFeatureVectors(totalCorpus, 'LR', featureList, vectorType='kbest')
+
+    createWordsFile(featureList, bestWords2)
+
+    # createFeatureVectors(totalCorpus, 'NB', featureList, vectorType='kbest')
+    # createFeatureVectors(totalCorpus, 'LR', featureList, vectorType='kbest')
     # /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\
+
+    createSummaryFile()
+
+
+def createWordsFile(featureList, path):
+
+    f = open(path, 'w+', encoding='utf-8')
+
+    for feature in featureList:
+        f.write(feature + '\n')
+
+def createSummaryFile():
+
+    f = open(summaryOutputPath, 'w+', encoding='utf-8')
+
+    for line in summaryToFile:
+        f.write(line + '\n')
 
 
 def getKbest(totalCorpus):
@@ -119,6 +165,10 @@ def getKbest(totalCorpus):
     for feature in features:
         # print(str(feature))
         featureList.append(feature)
+
+
+
+
     # return best_k_words
     # print(featureList)
 
@@ -371,10 +421,14 @@ def createFeatureVectors(totalCorpus, classifier, featureList=None, vectorType='
     total = int(sum*1000)/100
 
     if classifier == 'NB':
-        print('Naïve Bayes: ', total)
+        print('Naïve Bayes:', total)
+        summary = str('Naïve Bayes: ' + str(total))
+        summaryToFile.append(summary)
+
     if classifier == 'LR':
         print('Logistic Regression: ', total)
-
+        summary = str('Logistic Regression: ' + str(total))
+        summaryToFile.append(summary)
 
 
 def readAndLabel(directory):
