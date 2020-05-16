@@ -1,5 +1,7 @@
 import os
 import random
+import sys
+
 import pandas as pd
 import numpy as np
 from sklearn.feature_selection import SelectKBest, chi2, f_classif
@@ -18,18 +20,19 @@ from sklearn.pipeline import Pipeline, FeatureUnion
 
 import gc
 
-userDir = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Input\byUser'
+# userDir = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Input\byUser'
 countryDir = r'C:\Users\oron.werner\PycharmProjects\NLP\hw2Input'
 countryOut = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Input\byCountry'
-countryEqualizedInput = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Input\byCountry\equalized'
-summaryOutputPath = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Output\summary\summary.txt'
-bestWords1 = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Output\summary\words1.txt'
-bestWords2 = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Output\summary\words2.txt'
+# countryEqualizedInput = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Input\byCountry\equalized'
+# summaryOutputPath = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Output\summary\summary.txt'
+# bestWords1 = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Output\summary\words1.txt'
+# bestWords2 = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Output\summary\words2.txt'
 
 summaryToFile = []
 bestWords = []
 
-def main():
+
+def main(userDir=sys.argv[1], countryEqualizedInput=sys.argv[2], summaryOutputPath=sys.argv[3], bestWords1=sys.argv[4], bestWords2=sys.argv[5]):
 
 
     # \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/
@@ -117,7 +120,7 @@ def main():
     # createFeatureVectors(totalCorpus, 'LR', featureList, vectorType='kbest')
     # /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\
 
-    createSummaryFile()
+    createSummaryFile(summaryOutputPath)
 
 
 def createWordsFile(featureList, path):
@@ -127,9 +130,10 @@ def createWordsFile(featureList, path):
     for feature in featureList:
         f.write(feature + '\n')
 
-def createSummaryFile():
 
-    f = open(summaryOutputPath, 'w+', encoding='utf-8')
+def createSummaryFile(path):
+
+    f = open(path, 'w+', encoding='utf-8')
 
     for line in summaryToFile:
         f.write(line + '\n')
