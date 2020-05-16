@@ -16,6 +16,8 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline, FeatureUnion
 
+import gc
+
 userDir = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Input\byUser'
 countryDir = r'C:\Users\oron.werner\PycharmProjects\NLP\hw2Input'
 countryOut = r'C:\Users\oron.werner\PycharmProjects\NLP\hw3Input\byCountry'
@@ -65,9 +67,26 @@ def main():
     print('-------------------------------------------------------------------------------------------------------------------')
     # /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\
 
+
+    # \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ \/
+    print('Phase3 (Best features):')
+    print('Author Identification:')
+
     totalCorpus = readAndLabel(userDir)
     featureList = getKbest(totalCorpus)
+    featureMatrix = np.array(featureList)
+    # print(featureMatrix.reshape((20, 5)))
     createFeatureVectors(totalCorpus, 'NB', featureList, vectorType='kbest')
+    createFeatureVectors(totalCorpus, 'LR', featureList, vectorType='kbest')
+
+    print('Native Language Identification:')
+    totalCorpus = readAndLabel(countryEqualizedInput)
+    featureList = getKbest(totalCorpus)
+    featureMatrix = np.array(featureList)
+    # print(featureMatrix.reshape((20, 5)))
+    createFeatureVectors(totalCorpus, 'NB', featureList, vectorType='kbest')
+    createFeatureVectors(totalCorpus, 'LR', featureList, vectorType='kbest')
+    # /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\
 
 
 def getKbest(totalCorpus):
@@ -81,23 +100,27 @@ def getKbest(totalCorpus):
     cv = vect.fit_transform(X)
     totalFeatures = vect.get_feature_names()
 
-    print(cv.shape)
+    # print(cv.shape)
     tr = transformer.fit_transform(cv)
-    print(tr.shape)
+    # print(tr.shape)
 
     ch2 = SelectKBest(k=100)
 
     count_new = ch2.fit_transform(tr, y)
-    print(count_new.shape)
+    # print(count_new.shape)
+
+    features = []
     featureList = []
 
     indices = ch2.get_support(indices="true")
-    features = np.array(totalFeatures)[indices]
+    for ind in indices:
+        features.append(totalFeatures[ind])
+    # print(features)
     for feature in features:
-        print(str(feature))
+        # print(str(feature))
         featureList.append(feature)
     # return best_k_words
-    print(featureList)
+    # print(featureList)
 
     return featureList
 
@@ -283,7 +306,6 @@ def createFeatureVectors(totalCorpus, classifier, featureList=None, vectorType='
 
         elif vectorType == 'kbest':
 
-            print('inside kbest')
             myVectorXtrain = []
             myVectorXtest = []
 
@@ -294,23 +316,23 @@ def createFeatureVectors(totalCorpus, classifier, featureList=None, vectorType='
                 # print(sentence)
                 for feature in featureList:
                     sentenceFeatures.append(sentence.count(feature))
-                print(sentenceFeatures)
+                # print(sentenceFeatures)
                 # print('sentenceLen ' + str(len(sentence)) + ' wordLen ' + str(len(st)))
 
                 myVectorXtrain.append(sentenceFeatures)
                 sentenceFeatures = []
                 # print(myVectorXtrain)
-            for lists in myVectorXtrain:
-                print(lists)
+            # for lists in myVectorXtrain:
+            #     print(lists)
 
             for sentence in X_test:
                 st = sentence.split()
                 # print('sentenceLen ' + str(len(sentence)) + ' wordLen ' + str(len(st)))
-                myVectorXtest.append(
-                    [len(sentence), len(st), sentence.count('!'), sentence.count('?'), sentence.count('.'),
-                     sentence.count('\''), sentence.count('I am'), sentence.count('you \' re'), sentence.count('. . .'),
-                     sentence.count('I \' m')])
+                for feature in featureList:
+                    sentenceFeatures.append(sentence.count(feature))
 
+                myVectorXtest.append(sentenceFeatures)
+                sentenceFeatures = []
             # print(np.array(myVectorXtrain))
 
             X_train_dtm = np.array(myVectorXtrain)  # create document - term matrix for the words TODO: verify this part
@@ -338,10 +360,10 @@ def createFeatureVectors(totalCorpus, classifier, featureList=None, vectorType='
             exit()
 
 
-        print('\nAccuracy score: ', metrics.accuracy_score(y_test, y_pred_class))
-        print('Test sentences by classes:')
-        print(y_test.value_counts())
-        print('Confusion matrix:\n', metrics.confusion_matrix(y_test, y_pred_class))
+        # print('\nAccuracy score: ', metrics.accuracy_score(y_test, y_pred_class))
+        # print('Test sentences by classes:')
+        # print(y_test.value_counts())
+        # print('Confusion matrix:\n', metrics.confusion_matrix(y_test, y_pred_class))
 
     # print('\n**********************************')
 
