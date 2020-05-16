@@ -41,9 +41,9 @@ def main(userDir=sys.argv[1], countryEqualizedInput=sys.argv[2], summaryOutputPa
     summaryToFile.append('Phase1 (Bag of Words):')
     summaryToFile.append('Author Identification:')
     # BOW for 2 users files
-    # totalCorpus = readAndLabel(userDir)
-    # createFeatureVectors(totalCorpus, 'NB')
-    # createFeatureVectors(totalCorpus, 'LR')
+    totalCorpus = readAndLabel(userDir)
+    createFeatureVectors(totalCorpus, 'NB')
+    createFeatureVectors(totalCorpus, 'LR')
 
 
     # prep for country files
@@ -55,9 +55,9 @@ def main(userDir=sys.argv[1], countryEqualizedInput=sys.argv[2], summaryOutputPa
     print('Native Language Identification:')
     summaryToFile.append('Native Language Identification:')
 
-    # totalCorpus = readAndLabel(countryEqualizedInput)
-    # createFeatureVectors(totalCorpus, 'NB')
-    # createFeatureVectors(totalCorpus, 'LR')
+    totalCorpus = readAndLabel(countryEqualizedInput)
+    createFeatureVectors(totalCorpus, 'NB')
+    createFeatureVectors(totalCorpus, 'LR')
     print('-------------------------------------------------------------------------------------------------------------------')
     summaryToFile.append('-------------------------------------------------------------------------------------------------------------------')
 
@@ -72,17 +72,17 @@ def main(userDir=sys.argv[1], countryEqualizedInput=sys.argv[2], summaryOutputPa
 
 
     # Manual vector for 2 users files
-    # totalCorpus = readAndLabel(userDir)
-    # createFeatureVectors(totalCorpus, 'NB', vectorType='manual')
-    # createFeatureVectors(totalCorpus, 'LR', vectorType='manual')
+    totalCorpus = readAndLabel(userDir)
+    createFeatureVectors(totalCorpus, 'NB', vectorType='manual')
+    createFeatureVectors(totalCorpus, 'LR', vectorType='manual')
 
     # Manual vector for country files
     print('Native Language Identification:')
     summaryToFile.append('Native Language Identification:')
 
-    # totalCorpus = readAndLabel(countryEqualizedInput)
-    # createFeatureVectors(totalCorpus, 'NB', vectorType='manual')
-    # createFeatureVectors(totalCorpus, 'LR', vectorType='manual')
+    totalCorpus = readAndLabel(countryEqualizedInput)
+    createFeatureVectors(totalCorpus, 'NB', vectorType='manual')
+    createFeatureVectors(totalCorpus, 'LR', vectorType='manual')
     print('-------------------------------------------------------------------------------------------------------------------')
     summaryToFile.append('-------------------------------------------------------------------------------------------------------------------')
 
@@ -102,9 +102,8 @@ def main(userDir=sys.argv[1], countryEqualizedInput=sys.argv[2], summaryOutputPa
 
     createWordsFile(featureList, bestWords1)
 
-
-    # createFeatureVectors(totalCorpus, 'NB', featureList, vectorType='kbest')
-    # createFeatureVectors(totalCorpus, 'LR', featureList, vectorType='kbest')
+    createFeatureVectors(totalCorpus, 'NB', featureList, vectorType='kbest')
+    createFeatureVectors(totalCorpus, 'LR', featureList, vectorType='kbest')
 
     print('Native Language Identification:')
     summaryToFile.append('Native Language Identification:')
@@ -116,8 +115,8 @@ def main(userDir=sys.argv[1], countryEqualizedInput=sys.argv[2], summaryOutputPa
 
     createWordsFile(featureList, bestWords2)
 
-    # createFeatureVectors(totalCorpus, 'NB', featureList, vectorType='kbest')
-    # createFeatureVectors(totalCorpus, 'LR', featureList, vectorType='kbest')
+    createFeatureVectors(totalCorpus, 'NB', featureList, vectorType='kbest')
+    createFeatureVectors(totalCorpus, 'LR', featureList, vectorType='kbest')
     # /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\
 
     createSummaryFile(summaryOutputPath)
