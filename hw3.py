@@ -2,6 +2,7 @@ import os
 import random
 import pandas as pd
 import numpy as np
+from sklearn.feature_selection import SelectKBest, chi2, f_classif
 
 from sklearn.utils._testing import ignore_warnings
 from sklearn.exceptions import ConvergenceWarning
@@ -28,9 +29,9 @@ def main():
     print('Author Identification:')
 
     # BOW for 2 users files
-    totalCorpus = readAndLabel(userDir)
-    createFeatureVectors(totalCorpus, 'NB')
-    createFeatureVectors(totalCorpus, 'LR')
+    # totalCorpus = readAndLabel(userDir)
+    # createFeatureVectors(totalCorpus, 'NB')
+    # createFeatureVectors(totalCorpus, 'LR')
 
 
     # prep for country files
@@ -40,9 +41,9 @@ def main():
 
     # BOW for country files
     print('Native Language Identification:')
-    totalCorpus = readAndLabel(countryEqualizedInput)
-    createFeatureVectors(totalCorpus, 'NB')
-    createFeatureVectors(totalCorpus, 'LR')
+    # totalCorpus = readAndLabel(countryEqualizedInput)
+    # createFeatureVectors(totalCorpus, 'NB')
+    # createFeatureVectors(totalCorpus, 'LR')
     print('-------------------------------------------------------------------------------------------------------------------')
     # /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\
 
@@ -52,23 +53,81 @@ def main():
     print('Author Identification:')
 
     # Manual vector for 2 users files
-    totalCorpus = readAndLabel(userDir)
-    createFeatureVectors(totalCorpus, 'NB', vectorType='manual')
-    createFeatureVectors(totalCorpus, 'LR', vectorType='manual')
+    # totalCorpus = readAndLabel(userDir)
+    # createFeatureVectors(totalCorpus, 'NB', vectorType='manual')
+    # createFeatureVectors(totalCorpus, 'LR', vectorType='manual')
 
     # Manual vector for country files
     print('Native Language Identification:')
-    totalCorpus = readAndLabel(countryEqualizedInput)
-    createFeatureVectors(totalCorpus, 'NB', vectorType='manual')
-    createFeatureVectors(totalCorpus, 'LR', vectorType='manual')
+    # totalCorpus = readAndLabel(countryEqualizedInput)
+    # createFeatureVectors(totalCorpus, 'NB', vectorType='manual')
+    # createFeatureVectors(totalCorpus, 'LR', vectorType='manual')
     print('-------------------------------------------------------------------------------------------------------------------')
     # /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ /\
+
+    totalCorpus = readAndLabel(userDir)
+    featureList = getKbest(totalCorpus)
+    # createFeatureVectors(totalCorpus, 'NB', vectorType='kbest')
+
+
+def getKbest(totalCorpus):
+
+    totalDf = pd.DataFrame.from_dict(totalCorpus)  # create a data frame for the labeled sentences
+    y = totalDf['class']  # create a column for of the labels
+    X = totalDf['text']
+
+    vect = CountVectorizer()
+    transformer = TfidfTransformer()
+    cv = vect.fit_transform(X)
+    totalFeatures = vect.get_feature_names()
+
+    print(cv.shape)
+    tr = transformer.fit_transform(cv)
+    print(tr.shape)
+
+    ch2 = SelectKBest(k=100)
+
+    count_new = ch2.fit_transform(tr, y)
+    print(count_new.shape)
+    featureList = []
+
+    indices = ch2.get_support(indices="true")
+    features = np.array(totalFeatures)[indices]
+    for feature in features:
+        print(str(feature))
+        featureList.append(feature)
+    # return best_k_words
+    print(featureList)
+
+    return featureList
+
+    # print(count_new.shape)
+    # print(ch2.get_support(indices=True))
+
+    # vector_names = list(count_new.columns[ch2.get_support(indices=True)])
+    # print(vector_names)
+
+    # for i in range(len(X)):
+    #     if i == 1498:
+    #         print(X[i])
+
+    # dic = np.asarray(count_new.get_feature_names())[ch2.get_support()]
+    # count_vectorizer = CountVectorizer(strip_accents='unicode', ngram_range=(1, 1), binary=True, vocabulary=dict)
+
+    # print(count_vectorizer)
+
+    # # selector = SelectKBest(chi2, k=100)
+    # # kbest = selector.fit(tr, y)
+    #
+    # selector = SelectKBest(k=100)
+    # sel = selector.fit_transform(tr, y)
+    # # print(sel)
+    # # print(sel.get_params())
+
 
 
 def manualFeatureVector():
     manualVector = []
-
-
 
 
 
@@ -169,11 +228,6 @@ def createFeatureVectors(totalCorpus, classifier, vectorType='normal'):
     totalDf = pd.DataFrame.from_dict(totalCorpus)     # create a data frame for the labeled sentences
     y = totalDf['class']     # create a column for of the labels
 
-    # print(totalDf)
-    # print(y)
-    # print('totalDf shape:', totalDf.shape)
-    # print('y shape:', y.shape)
-
     X = totalDf['text']
     # print('X shape:', X.shape)
 
@@ -227,6 +281,26 @@ def createFeatureVectors(totalCorpus, classifier, vectorType='normal'):
             # print('X train dtm ', X_train_dtm.shape)
             # print('X test dtm ', X_test_dtm.shape)
 
+        if vectorType == 'kbest':
+
+            print('inside kbest')
+            vect = CountVectorizer()
+            selector = SelectKBest(chi2, k=100)
+
+            X_train_dtm = vect.fit_transform(X_train)  # create document - term matrix for the words TODO: verify this part
+            transformer = TfidfTransformer()
+            X_train_dtm = transformer.fit_transform(X_train_dtm)
+            print(X_train_dtm.shape)
+
+            xselect = selector.fit_transform(X_train_dtm, y_train)
+
+            print(xselect.shape)
+            # print(vect.vocabulary_)
+
+
+            X_test_dtm = vect.transform(X_test)
+            X_test_dtm = transformer.fit_transform(X_test_dtm)
+
 
 
 
@@ -250,10 +324,10 @@ def createFeatureVectors(totalCorpus, classifier, vectorType='normal'):
             exit()
 
 
-        # print('\nAccuracy score: ', metrics.accuracy_score(y_test, y_pred_class))
-        # print('Test sentences by classes:')
-        # print(y_test.value_counts())
-        # print('Confusion matrix:\n', metrics.confusion_matrix(y_test, y_pred_class))
+        print('\nAccuracy score: ', metrics.accuracy_score(y_test, y_pred_class))
+        print('Test sentences by classes:')
+        print(y_test.value_counts())
+        print('Confusion matrix:\n', metrics.confusion_matrix(y_test, y_pred_class))
 
     # print('\n**********************************')
 
