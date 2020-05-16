@@ -67,7 +67,7 @@ def main():
 
     totalCorpus = readAndLabel(userDir)
     featureList = getKbest(totalCorpus)
-    # createFeatureVectors(totalCorpus, 'NB', vectorType='kbest')
+    createFeatureVectors(totalCorpus, 'NB', featureList, vectorType='kbest')
 
 
 def getKbest(totalCorpus):
@@ -223,7 +223,7 @@ def createShuffledFiles(directory):
 
 
 @ignore_warnings(category=ConvergenceWarning)
-def createFeatureVectors(totalCorpus, classifier, vectorType='normal'):
+def createFeatureVectors(totalCorpus, classifier, featureList=None, vectorType='normal'):
     # X = numpy.array(totalCorpus)
     totalDf = pd.DataFrame.from_dict(totalCorpus)     # create a data frame for the labeled sentences
     y = totalDf['class']     # create a column for of the labels
@@ -266,7 +266,7 @@ def createFeatureVectors(totalCorpus, classifier, vectorType='normal'):
                 st = sentence.split()
                 # print('sentenceLen ' + str(len(sentence)) + ' wordLen ' + str(len(st)))
                 myVectorXtrain.append([len(sentence), len(st), sentence.count('!'), sentence.count('?'), sentence.count('.'), sentence.count('\''), sentence.count('I am'), sentence.count('you \' re'), sentence.count('. . .'), sentence.count('I \' m')])
-
+                # print(myVectorXtrain)
 
             for sentence in X_test:
                 st = sentence.split()
@@ -281,26 +281,40 @@ def createFeatureVectors(totalCorpus, classifier, vectorType='normal'):
             # print('X train dtm ', X_train_dtm.shape)
             # print('X test dtm ', X_test_dtm.shape)
 
-        if vectorType == 'kbest':
+        elif vectorType == 'kbest':
 
             print('inside kbest')
-            vect = CountVectorizer()
-            selector = SelectKBest(chi2, k=100)
+            myVectorXtrain = []
+            myVectorXtest = []
 
-            X_train_dtm = vect.fit_transform(X_train)  # create document - term matrix for the words TODO: verify this part
-            transformer = TfidfTransformer()
-            X_train_dtm = transformer.fit_transform(X_train_dtm)
-            print(X_train_dtm.shape)
+            sentenceFeatures = []
 
-            xselect = selector.fit_transform(X_train_dtm, y_train)
+            for sentence in X_train:
+                # words = sentence.split()
+                # print(sentence)
+                for feature in featureList:
+                    sentenceFeatures.append(sentence.count(feature))
+                print(sentenceFeatures)
+                # print('sentenceLen ' + str(len(sentence)) + ' wordLen ' + str(len(st)))
 
-            print(xselect.shape)
-            # print(vect.vocabulary_)
+                myVectorXtrain.append(sentenceFeatures)
+                sentenceFeatures = []
+                # print(myVectorXtrain)
+            for lists in myVectorXtrain:
+                print(lists)
 
+            for sentence in X_test:
+                st = sentence.split()
+                # print('sentenceLen ' + str(len(sentence)) + ' wordLen ' + str(len(st)))
+                myVectorXtest.append(
+                    [len(sentence), len(st), sentence.count('!'), sentence.count('?'), sentence.count('.'),
+                     sentence.count('\''), sentence.count('I am'), sentence.count('you \' re'), sentence.count('. . .'),
+                     sentence.count('I \' m')])
 
-            X_test_dtm = vect.transform(X_test)
-            X_test_dtm = transformer.fit_transform(X_test_dtm)
+            # print(np.array(myVectorXtrain))
 
+            X_train_dtm = np.array(myVectorXtrain)  # create document - term matrix for the words TODO: verify this part
+            X_test_dtm = np.array(myVectorXtest)
 
 
 
