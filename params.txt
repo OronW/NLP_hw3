@@ -1,0 +1,2 @@
+hw3.py C:\Users\oron.werner\PycharmProjects\NLP\hw3Input\byUser C:\Users\oron.werner\PycharmProjects\NLP\hw3Input\byCountry\equalized C:\Users\oron.werner\PycharmProjects\NLP\hw3Output\summary\summary.txt
+C:\Users\oron.werner\PycharmProjects\NLP\hw3Output\summary\words1.txt C:\Users\oron.werner\PycharmProjects\NLP\hw3Output\summary\words2.txt
